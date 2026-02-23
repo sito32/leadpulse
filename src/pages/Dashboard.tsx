@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Lead } from '../types';
-import { isSameDay, startOfWeek, startOfMonth } from '../store';
+import { isSameDay, startOfWeek, startOfMonth } from '../store.supabase';
 import { StatusBadge } from '../components/StatusBadge';
 import { PlatformIcon } from '../components/PlatformIcon';
 

@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import type { Platform, Category, Lead } from '../types';
 
 interface Props {
-  onImport: (leads: Omit<Lead, 'id' | 'addedAt' | 'status'>[]) => { imported: number; duplicates: number };
+  onImport: (leads: Omit<Lead, 'id' | 'addedAt' | 'status'>[]) => { imported: number; duplicates: number } | Promise<{ imported: number; duplicates: number }>;
   existingLeads: Lead[];
 }
 
@@ -227,9 +227,9 @@ export function BulkUpload({ onImport, existingLeads }: Props) {
     setPreviewLeads(prev => prev.map(l => ({ ...l, isSelected: l.isDuplicate ? false : selected })));
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const toImport = previewLeads.filter(l => l.isSelected && !l.isDuplicate);
-    const result = onImport(toImport.map(l => ({
+    const result = await onImport(toImport.map(l => ({
       name: l.name,
       profileUrl: l.profileUrl,
       platform: l.platform,
