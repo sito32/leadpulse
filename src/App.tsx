@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { isSupabaseConfigured } from './lib/supabase';
 import { useSupabaseStore } from './store.supabase';
-import { Auth } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { NewLead } from './pages/NewLead';
 import { SendDM } from './pages/SendDM';
@@ -38,49 +37,19 @@ const MORE_ITEMS: { id: Page; label: string; icon: string; gradient: string }[] 
 export function App() {
   const [page, setPage] = useState<Page>('dashboard');
   const [showMore, setShowMore] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId] = useState<string | null>(null);
+  const [userEmail] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Initialize Supabase auth
+  // Initialize — no login required, use localStorage only
   useEffect(() => {
-    if (!supabase || !isSupabaseConfigured) {
-      // No Supabase → run in localStorage-only mode (no auth needed)
-      setAuthChecked(true);
-      return;
-    }
-
-    // Check current session
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) {
-        setUserId(data.session.user.id);
-        setUserEmail(data.session.user.email ?? null);
-      }
-      setAuthChecked(true);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email ?? null);
-      } else {
-        setUserId(null);
-        setUserEmail(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    setAuthChecked(true);
   }, []);
 
   const store = useSupabaseStore(userId);
 
-  const handleSignOut = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    setUserId(null);
-    setUserEmail(null);
+  const handleSignOut = () => {
+    // Sign out not needed without auth
   };
 
   const handleNavigate = (p: string) => {
@@ -104,10 +73,7 @@ export function App() {
     );
   }
 
-  // If Supabase is configured but user is not logged in → show auth screen
-  if (isSupabaseConfigured && !userId) {
-    return <Auth onAuth={() => { /* auth state change will update userId */ }} />;
-  }
+  // No login required — always show the app directly
 
   const renderPage = () => {
     switch (page) {
